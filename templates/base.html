@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Escolar{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.3/flowbite.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
+        <a href="{{ url_for('home') }}" class="text-2xl font-bold mx-auto text-white hover:text-gray-200 transition">
+            Sistema Escolar
+        </a>
+        <button id="menu-toggle" class="md:hidden bg-blue-500 p-2 rounded">☰</button>
+    </nav>
+
+    <div class="flex">
+        <aside id="sidebar" class="w-64 bg-white shadow-md min-h-screen p-5 hidden md:block">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700 hover:text-blue-500 transition">
+                <a href="{{ url_for('home') }}">Administración</a>
+            </h2>
+            <ul>
+                <li><a href="{{ url_for('alumnos_bp.vista_alumnos') }}" class="block p-2 hover:bg-blue-100 rounded">Alumnos</a></li>
+                <li><a href="{{ url_for('grupos_bp.vista_grupos') }}" class="block p-2 hover:bg-blue-100 rounded">Grupos</a></li>
+                <li><a href="{{ url_for('cuatrimestres_bp.vista_cuatrimestres') }}" class="block p-2 hover:bg-blue-100 rounded">Cuatrimestres</a></li>
+                <li><a href="{{ url_for('materias_bp.vista_materias') }}" class="block p-2 hover:bg-blue-100 rounded">Materias</a></li>
+                <li><a href="{{ url_for('calificaciones_bp.vista_calificaciones') }}" class="block p-2 hover:bg-blue-100 rounded">Calificaciones</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 p-6">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <!-- Contenedor de alertas flotantes -->
+    <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+
+    <script>
+        document.getElementById("menu-toggle").addEventListener("click", function () {
+            document.getElementById("sidebar").classList.toggle("hidden");
+        });
+
+        function mostrarToast(mensaje, tipo) {
+            let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
+            let toast = document.createElement("div");
+            toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
+            toast.innerHTML = `<p>${mensaje}</p>`;
+            document.getElementById("toast-container").appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove("translate-x-5", "opacity-0");
+            }, 100);
+            setTimeout(() => {
+                toast.classList.add("opacity-0");
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    mostrarToast("{{ message }}", "{{ category }}");
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+</body>
+</html>

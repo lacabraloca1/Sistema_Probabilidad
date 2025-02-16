@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Administrar Grupos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Grupos</h1>
+
+    <button onclick="abrirModal('modalAgregarGrupo')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+        + Agregar Grupo
+    </button>
+
+    <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="w-full table-auto">
+            <thead class="bg-blue-500 text-white">
+                <tr>
+                    <th class="px-4 py-2">ID</th>
+                    <th class="px-4 py-2">Nombre</th>
+                    <th class="px-4 py-2">Turno</th>
+                    <th class="px-4 py-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grupo in grupos %}
+                <tr class="border-b hover:bg-gray-100">
+                    <td class="px-4 py-2">{{ grupo.grupos_id }}</td>
+                    <td class="px-4 py-2">{{ grupo.nombre }}</td>
+                    <td class="px-4 py-2">{{ grupo.turno }}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <button onclick="abrirModal('modalEditarGrupo-{{ grupo.grupos_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModal('modalEliminarGrupo-{{ grupo.grupos_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                    </td>
+                </tr>
+
+                <!-- Modal Editar Grupo -->
+                <div id="modalEditarGrupo-{{ grupo.grupos_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">Editar Grupo</h2>
+                        <form method="POST" action="{{ url_for('grupos_bp.editar_grupo', id=grupo.grupos_id) }}">
+                            <label class="block mt-3 mb-2">Nombre:</label>
+                            <input type="text" name="nombre" value="{{ grupo.nombre }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+                            <label class="block mt-3 mb-2">Turno:</label>
+                            <select name="turno" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300">
+                                <option value="Matutino" {% if grupo.turno == 'Matutino' %} selected {% endif %}>Matutino</option>
+                                <option value="Vespertino" {% if grupo.turno == 'Vespertino' %} selected {% endif %}>Vespertino</option>
+                            </select>
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal Eliminar Grupo -->
+                <div id="modalEliminarGrupo-{{ grupo.grupos_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">¿Eliminar Grupo?</h2>
+                        <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
+                        <form method="POST" action="{{ url_for('grupos_bp.eliminar_grupo', id=grupo.grupos_id) }}">
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Agregar Grupo -->
+<div id="modalAgregarGrupo" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-semibold">Agregar Grupo</h2>
+        <form method="POST" action="{{ url_for('grupos_bp.crear_grupo') }}">
+            <label class="block mt-3 mb-2">Nombre:</label>
+            <input type="text" name="nombre" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+            <label class="block mt-3 mb-2">Turno:</label>
+            <select name="turno" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300">
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+            </select>
+            <div class="flex justify-end mt-5 space-x-2">
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+
+<script>
+    function mostrarToast(mensaje, tipo) {
+        let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
+        let toast = document.createElement("div");
+        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
+        toast.innerHTML = `<p>${mensaje}</p>`;
+        document.getElementById("toast-container").appendChild(toast);
+        setTimeout(() => {
+            toast.classList.remove("translate-x-5", "opacity-0");
+        }, 100);
+        setTimeout(() => {
+            toast.classList.add("opacity-0");
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                mostrarToast("{{ message }}", "{{ category }}");
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

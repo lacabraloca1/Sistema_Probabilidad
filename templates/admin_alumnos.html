@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Administrar Alumnos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Alumnos</h1>
+
+    <button onclick="abrirModal('modalAgregarAlumno')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+        + Agregar Alumno
+    </button>
+
+    <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="w-full table-auto">
+            <thead class="bg-blue-500 text-white">
+                <tr>
+                    <th class="px-4 py-2">Matrícula</th>
+                    <th class="px-4 py-2">Nombre</th>
+                    <th class="px-4 py-2">Correo</th>
+                    <th class="px-4 py-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                <tr class="border-b hover:bg-gray-100">
+                    <td class="px-4 py-2">{{ alumno.matricula }}</td>
+                    <td class="px-4 py-2">{{ alumno.nombre }} {{ alumno.apellido_paterno }} {{ alumno.apellido_materno }}</td>
+                    <td class="px-4 py-2">{{ alumno.email_correo }}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <button onclick="abrirModal('modalEditarAlumno-{{ alumno.usuario_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModal('modalEliminarAlumno-{{ alumno.usuario_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                    </td>
+                </tr>
+
+                <!-- Modal Editar Alumno -->
+                <div id="modalEditarAlumno-{{ alumno.usuario_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">Editar Alumno</h2>
+                        <form method="POST" action="{{ url_for('alumnos_bp.editar_alumno', id=alumno.usuario_id) }}">
+                            <label class="block mt-3 mb-2">Nombre:</label>
+                            <input type="text" name="nombre" value="{{ alumno.nombre }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+                            <label class="block mt-3 mb-2">Correo:</label>
+                            <input type="email" name="email_correo" value="{{ alumno.email_correo }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal Eliminar Alumno -->
+                <div id="modalEliminarAlumno-{{ alumno.usuario_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">¿Eliminar Alumno?</h2>
+                        <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
+                        <form method="POST" action="{{ url_for('alumnos_bp.eliminar_alumno', id=alumno.usuario_id) }}">
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Agregar Alumno -->
+<div id="modalAgregarAlumno" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-semibold">Agregar Alumno</h2>
+        <form method="POST" action="{{ url_for('alumnos_bp.crear_alumno') }}">
+            <label class="block mt-3 mb-2">Matrícula:</label>
+            <input type="text" name="matricula" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <label class="block mt-3 mb-2">Nombre:</label>
+            <input type="text" name="nombre" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <label class="block mt-3 mb-2">Correo:</label>
+            <input type="email" name="email_correo" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <div class="flex justify-end mt-5 space-x-2">
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+
+<script>
+    function mostrarToast(mensaje, tipo) {
+        let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
+        let toast = document.createElement("div");
+        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
+        toast.innerHTML = `<p>${mensaje}</p>`;
+        document.getElementById("toast-container").appendChild(toast);
+        setTimeout(() => {
+            toast.classList.remove("translate-x-5", "opacity-0");
+        }, 100);
+        setTimeout(() => {
+            toast.classList.add("opacity-0");
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                mostrarToast("{{ message }}", "{{ category }}");
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

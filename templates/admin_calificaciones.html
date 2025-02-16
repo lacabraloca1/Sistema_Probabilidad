@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Administrar Calificaciones{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Calificaciones</h1>
+
+    <button onclick="abrirModal('modalAgregarCalificacion')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+        + Agregar Calificación
+    </button>
+
+    <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="w-full table-auto">
+            <thead class="bg-blue-500 text-white">
+                <tr>
+                    <th class="px-4 py-2">Alumno</th>
+                    <th class="px-4 py-2">Materia</th>
+                    <th class="px-4 py-2">Primer Parcial</th>
+                    <th class="px-4 py-2">Segundo Parcial</th>
+                    <th class="px-4 py-2">Tercer Parcial</th>
+                    <th class="px-4 py-2">Final</th>
+                    <th class="px-4 py-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for calificacion in calificaciones %}
+                <tr class="border-b hover:bg-gray-100">
+                    <td class="px-4 py-2">{{ calificacion.alumno.nombre }}</td>
+                    <td class="px-4 py-2">{{ calificacion.materia.nombre }}</td>
+                    <td class="px-4 py-2">{{ calificacion.primer_parcial }}</td>
+                    <td class="px-4 py-2">{{ calificacion.segundo_parcial }}</td>
+                    <td class="px-4 py-2">{{ calificacion.tercer_parcial }}</td>
+                    <td class="px-4 py-2">{{ calificacion.calificacion_final }}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <button onclick="abrirModal('modalEditarCalificacion-{{ calificacion.calificaciones_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModal('modalEliminarCalificacion-{{ calificacion.calificaciones_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                    </td>
+                </tr>
+
+                <!-- Modal Editar Calificación -->
+                <div id="modalEditarCalificacion-{{ calificacion.calificaciones_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">Editar Calificación</h2>
+                        <form method="POST" action="{{ url_for('calificaciones_bp.editar_calificacion', id=calificacion.calificaciones_id) }}">
+                            <label class="block mt-3 mb-2">Primer Parcial:</label>
+                            <input type="number" name="primer_parcial" value="{{ calificacion.primer_parcial }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+                            <label class="block mt-3 mb-2">Segundo Parcial:</label>
+                            <input type="number" name="segundo_parcial" value="{{ calificacion.segundo_parcial }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+                            <label class="block mt-3 mb-2">Tercer Parcial:</label>
+                            <input type="number" name="tercer_parcial" value="{{ calificacion.tercer_parcial }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal Eliminar Calificación -->
+                <div id="modalEliminarCalificacion-{{ calificacion.calificaciones_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <h2 class="text-xl font-semibold">¿Eliminar Calificación?</h2>
+                        <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
+                        <form method="POST" action="{{ url_for('calificaciones_bp.eliminar_calificacion', id=calificacion.calificaciones_id) }}">
+                            <div class="flex justify-end mt-5 space-x-2">
+                                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Agregar Calificación -->
+<div id="modalAgregarCalificacion" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-semibold">Agregar Calificación</h2>
+        <form method="POST" action="{{ url_for('calificaciones_bp.asignar_calificacion') }}">
+            <label class="block mt-3 mb-2">Alumno:</label>
+            <select name="alumno_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+                {% for alumno in alumnos %}
+                <option value="{{ alumno.usuario_id }}">{{ alumno.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="block mt-3 mb-2">Materia:</label>
+            <select name="materia_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+                {% for materia in materias %}
+                <option value="{{ materia.materia_id }}">{{ materia.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="block mt-3 mb-2">Primer Parcial:</label>
+            <input type="number" name="primer_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <label class="block mt-3 mb-2">Segundo Parcial:</label>
+            <input type="number" name="segundo_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <label class="block mt-3 mb-2">Tercer Parcial:</label>
+            <input type="number" name="tercer_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
+            <div class="flex justify-end mt-5 space-x-2">
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+
+<script>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                mostrarToast("{{ message }}", "{{ category }}");
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

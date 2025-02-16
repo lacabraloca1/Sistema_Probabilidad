@@ -1,12 +1,49 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vista Simple</title>
-</head>
-<body>
-    <h1>Bienvenido a la Vista Simple</h1>
-    <p>Esta es una página de ejemplo.</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center text-blue-600 mb-6">Sistema de Gestión Escolar</h1>
+    <p class="text-gray-700 text-center max-w-2xl mx-auto mb-8">
+        Bienvenido al sistema de administración escolar. Desde aquí puedes gestionar alumnos, materias, grupos, cuatrimestres y calificaciones de manera eficiente.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Alumnos -->
+        <a href="{{ url_for('alumnos_bp.vista_alumnos') }}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition flex flex-col items-center">
+            <div class="bg-blue-500 text-white w-16 h-16 flex items-center justify-center rounded-full mb-4">📚</div>
+            <h2 class="text-xl font-semibold text-blue-500">Alumnos</h2>
+            <p class="text-gray-600 mt-2 text-center">Gestión de estudiantes, registros y perfiles.</p>
+        </a>
+
+        <!-- Materias -->
+        <a href="{{ url_for('materias_bp.vista_materias') }}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition flex flex-col items-center">
+            <div class="bg-green-500 text-white w-16 h-16 flex items-center justify-center rounded-full mb-4">📖</div>
+            <h2 class="text-xl font-semibold text-green-500">Materias</h2>
+            <p class="text-gray-600 mt-2 text-center">Administración de asignaturas, créditos y planes de estudio.</p>
+        </a>
+
+        <!-- Calificaciones -->
+        <a href="{{ url_for('calificaciones_bp.vista_calificaciones') }}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition flex flex-col items-center">
+            <div class="bg-yellow-500 text-white w-16 h-16 flex items-center justify-center rounded-full mb-4">📝</div>
+            <h2 class="text-xl font-semibold text-yellow-500">Calificaciones</h2>
+            <p class="text-gray-600 mt-2 text-center">Consulta y asignación de notas por parciales y promedios finales.</p>
+        </a>
+
+        <!-- Grupos -->
+        <a href="{{ url_for('grupos_bp.vista_grupos') }}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition flex flex-col items-center">
+            <div class="bg-purple-500 text-white w-16 h-16 flex items-center justify-center rounded-full mb-4">🏫</div>
+            <h2 class="text-xl font-semibold text-purple-500">Grupos</h2>
+            <p class="text-gray-600 mt-2 text-center">Organización y asignación de estudiantes a grupos específicos.</p>
+        </a>
+
+        <!-- Cuatrimestres -->
+        <a href="{{ url_for('cuatrimestres_bp.vista_cuatrimestres') }}" class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition flex flex-col items-center">
+            <div class="bg-red-500 text-white w-16 h-16 flex items-center justify-center rounded-full mb-4">📅</div>
+            <h2 class="text-xl font-semibold text-red-500">Cuatrimestres</h2>
+            <p class="text-gray-600 mt-2 text-center">Gestión de periodos académicos y organización del ciclo escolar.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

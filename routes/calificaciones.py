@@ -1,13 +1,55 @@
 from flask import Blueprint, request, render_template, redirect, url_for, jsonify
 from utils.extensions import db
+from scipy.stats import binom
 from models.calificaciones import Calificaciones
+from models.alumnos import Alumnos
+from models.cuatrimestre import Cuatrimestre
+from models.materias import Materias
 
 calificaciones_bp = Blueprint('calificaciones_bp', __name__)
 
+def calcular_probabilidad(primer_parcial, segundo_parcial, tercer_parcial):
+    n = 3  # Número de parciales
+    promedio = (primer_parcial + segundo_parcial + tercer_parcial) / 3
+    
+    # Ajuste de p basado en el promedio
+    if promedio >= 9:
+        p = 0.9
+    elif promedio >= 8:
+        p = 0.75
+    elif promedio >= 7:
+        p = 0.6
+    elif promedio >= 6:
+        p = 0.4
+    else:
+        p = 0.2
+    
+    # Número de parciales aprobados (>=7)
+    parciales_aprobados = sum(1 for calificacion in [primer_parcial, segundo_parcial, tercer_parcial] if calificacion >= 7)
+
+    # Probabilidad de aprobar al menos 2 parciales
+    probabilidad_aprobar = 1 - binom.cdf(1, n, p)
+
+    return round(probabilidad_aprobar * 100, 2)
+
 @calificaciones_bp.route('/')
 def vista_calificaciones():
+    alumnos = Alumnos.query.all()
+    materias = Materias.query.all()
+    cuatrimestres = Cuatrimestre.query.all()
+
     calificaciones = Calificaciones.query.all()
-    return render_template('admin_calificaciones.html', calificaciones=calificaciones)
+
+    for calificacion in calificaciones:
+        # Calcular la probabilidad de aprobar el cuatrimestre basado en las calificaciones de los tres parciales
+        probabilidad = calcular_probabilidad(
+            calificacion.primer_parcial,
+            calificacion.segundo_parcial,
+            calificacion.tercer_parcial
+        )
+        calificacion.probabilidad = probabilidad
+        
+    return render_template('admin_calificaciones.html', calificaciones=calificaciones, alumnos=alumnos, materias=materias, cuatrimestres=cuatrimestres)
 
 @calificaciones_bp.route('/crear', methods=['POST'])
 def asignar_calificacion():

@@ -13,7 +13,7 @@ pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost/sistema_escolar_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234567890@localhost/sistema_escolar_db'#root:contraseña
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Registrar los Blueprints

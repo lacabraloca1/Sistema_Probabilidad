@@ -13,6 +13,11 @@ class Calificaciones(db.Model):
     tercer_parcial = db.Column(db.Numeric(5,2), nullable=True)
     calificacion_final = db.Column(db.Numeric(5,2), nullable=True)
 
+    # Relación corregida con Alumnos
+    alumno = db.relationship('Alumnos', backref='calificaciones')
+    materia = db.relationship('Materias', backref='calificaciones')
+    cuatrimestre = db.relationship('Cuatrimestre', backref='calificaciones')
+
     def calcular_calificacion_final(self):
         if self.primer_parcial is not None and self.segundo_parcial is not None and self.tercer_parcial is not None:
             self.calificacion_final = (self.primer_parcial + self.segundo_parcial + self.tercer_parcial) / 3

@@ -6,9 +6,12 @@
 <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Materias</h1>
 
-    <button onclick="abrirModal('modalAgregarMateria')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+    <button onclick="abrirModalMateria('modalAgregarMateria')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
         + Agregar Materia
     </button>
+
+    <!-- Contenedor de mensajes -->
+    <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
 
     <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
         <table class="w-full table-auto">
@@ -27,23 +30,25 @@
                     <td class="px-4 py-2">{{ materia.nombre }}</td>
                     <td class="px-4 py-2">{{ materia.creditos }}</td>
                     <td class="px-4 py-2 space-x-2">
-                        <button onclick="abrirModal('modalEditarMateria-{{ materia.materia_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
-                        <button onclick="abrirModal('modalEliminarMateria-{{ materia.materia_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                        <button onclick="abrirModalMateria('modalEditarMateria-{{ materia.materia_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModalMateria('modalEliminarMateria-{{ materia.materia_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
                     </td>
                 </tr>
 
                 <!-- Modal Editar Materia -->
-                <div id="modalEditarMateria-{{ materia.materia_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEditarMateria-{{ materia.materia_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalMateriaClick(event, 'modalEditarMateria-{{ materia.materia_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalMateria('modalEditarMateria-{{ materia.materia_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">Editar Materia</h2>
-                        <form method="POST" action="{{ url_for('materias_bp.editar_materia', id=materia.materia_id) }}">
+                        <form method="POST" action="{{ url_for('materias_bp.editar_materia', materia_id=materia.materia_id) }}">
                             <label class="block mt-3 mb-2">Nombre:</label>
                             <input type="text" name="nombre" value="{{ materia.nombre }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
 
                             <label class="block mt-3 mb-2">Créditos:</label>
-                            <input type="number" name="creditos" value="{{ materia.creditos }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+                            <input type="number" name="creditos" min="1" max="100" value="{{ materia.creditos }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
 
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalMateria('modalEditarMateria-{{ materia.materia_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
                             </div>
                         </form>
@@ -51,12 +56,14 @@
                 </div>
 
                 <!-- Modal Eliminar Materia -->
-                <div id="modalEliminarMateria-{{ materia.materia_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEliminarMateria-{{ materia.materia_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalMateriaClick(event, 'modalEliminarMateria-{{ materia.materia_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalMateria('modalEliminarMateria-{{ materia.materia_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">¿Eliminar Materia?</h2>
                         <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
-                        <form method="POST" action="{{ url_for('materias_bp.eliminar_materia', id=materia.materia_id) }}">
+                        <form method="POST" action="{{ url_for('materias_bp.eliminar_materia', materia_id=materia.materia_id) }}">
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalMateria('modalEliminarMateria-{{ materia.materia_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
                             </div>
                         </form>
@@ -70,47 +77,68 @@
 
 <!-- Modal de Agregar Materia -->
 <div id="modalAgregarMateria" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+        <button onclick="cerrarModalMateria('modalAgregarMateria')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
         <h2 class="text-xl font-semibold">Agregar Materia</h2>
         <form method="POST" action="{{ url_for('materias_bp.crear_materia') }}">
             <label class="block mt-3 mb-2">Nombre:</label>
             <input type="text" name="nombre" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
 
             <label class="block mt-3 mb-2">Créditos:</label>
-            <input type="number" name="creditos" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+            <input type="number" name="creditos" value="100" min="1" max="100" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
 
             <div class="flex justify-end mt-5 space-x-2">
+                <button type="button" onclick="cerrarModalMateria('modalAgregarMateria')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Contenedor de alertas flotantes -->
-<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
-
+<!-- Script para manejar modals y mensajes -->
 <script>
+    function abrirModalMateria(id) {
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function cerrarModalMateria(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+
+    function cerrarModalMateriaClick(event, id) {
+        if (event.target.id === id) {
+            cerrarModalMateria(id);
+        }
+    }
     function mostrarToast(mensaje, tipo) {
         let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
         let toast = document.createElement("div");
-        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
-        toast.innerHTML = `<p>${mensaje}</p>`;
-        document.getElementById("toast-container").appendChild(toast);
-        setTimeout(() => {
-            toast.classList.remove("translate-x-5", "opacity-0");
-        }, 100);
+        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition-opacity duration-300 opacity-0 flex justify-between items-center w-auto max-w-xs`;
+        
+        // Contenido del mensaje con botón de cierre
+        toast.innerHTML = `
+            <p>${mensaje}</p>
+            <button onclick="this.parentElement.remove()" class="ml-4 text-white text-lg font-bold">&times;</button>
+        `;
+    
+        let container = document.getElementById("toast-container");
+        if (!container) {
+            console.error("No se encontró el contenedor de toasts.");
+            return;
+        }
+        
+        container.appendChild(toast);
+        
+        // Hacer que el toast aparezca con animación
+        setTimeout(() => toast.classList.remove("opacity-0"), 100);
+    
+        // Ocultar después de 3 segundos automáticamente
         setTimeout(() => {
             toast.classList.add("opacity-0");
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
 
-    {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                mostrarToast("{{ message }}", "{{ category }}");
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 </script>
 {% endblock %}

@@ -6,9 +6,12 @@
 <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Cuatrimestres</h1>
 
-    <button onclick="abrirModal('modalAgregarCuatrimestre')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+    <button onclick="abrirModalCuatrimestre('modalAgregarCuatrimestre')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
         + Agregar Cuatrimestre
     </button>
+
+    <!-- Contenedor de alertas flotantes -->
+    <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
 
     <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
         <table class="w-full table-auto">
@@ -25,20 +28,22 @@
                     <td class="px-4 py-2">{{ cuatrimestre.cuatrimestre_id }}</td>
                     <td class="px-4 py-2">{{ cuatrimestre.nombre }}</td>
                     <td class="px-4 py-2 space-x-2">
-                        <button onclick="abrirModal('modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
-                        <button onclick="abrirModal('modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                        <button onclick="abrirModalCuatrimestre('modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModalCuatrimestre('modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
                     </td>
                 </tr>
 
                 <!-- Modal Editar Cuatrimestre -->
-                <div id="modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalCuatrimestreClick(event, 'modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalCuatrimestre('modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">Editar Cuatrimestre</h2>
                         <form method="POST" action="{{ url_for('cuatrimestres_bp.editar_cuatrimestre', id=cuatrimestre.cuatrimestre_id) }}">
                             <label class="block mt-3 mb-2">Nombre:</label>
                             <input type="text" name="nombre" value="{{ cuatrimestre.nombre }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
 
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalCuatrimestre('modalEditarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
                             </div>
                         </form>
@@ -46,12 +51,14 @@
                 </div>
 
                 <!-- Modal Eliminar Cuatrimestre -->
-                <div id="modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalCuatrimestreClick(event, 'modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalCuatrimestre('modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">¿Eliminar Cuatrimestre?</h2>
                         <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
                         <form method="POST" action="{{ url_for('cuatrimestres_bp.eliminar_cuatrimestre', id=cuatrimestre.cuatrimestre_id) }}">
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalCuatrimestre('modalEliminarCuatrimestre-{{ cuatrimestre.cuatrimestre_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
                             </div>
                         </form>
@@ -65,38 +72,61 @@
 
 <!-- Modal de Agregar Cuatrimestre -->
 <div id="modalAgregarCuatrimestre" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+        <button onclick="cerrarModalCuatrimestre('modalAgregarCuatrimestre')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
         <h2 class="text-xl font-semibold">Agregar Cuatrimestre</h2>
         <form method="POST" action="{{ url_for('cuatrimestres_bp.crear_cuatrimestre') }}">
             <label class="block mt-3 mb-2">Nombre:</label>
             <input type="text" name="nombre" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
 
             <div class="flex justify-end mt-5 space-x-2">
+                <button type="button" onclick="cerrarModalCuatrimestre('modalAgregarCuatrimestre')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Contenedor de alertas flotantes -->
-<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
-
+<!-- Script para manejar modals -->
 <script>
+    function abrirModalCuatrimestre(id) {
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function cerrarModalCuatrimestre(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+
+    function cerrarModalCuatrimestreClick(event, id) {
+        if (event.target.id === id) {
+            cerrarModalCuatrimestre(id);
+        }
+    }
     function mostrarToast(mensaje, tipo) {
         let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
         let toast = document.createElement("div");
-        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
-        toast.innerHTML = `<p>${mensaje}</p>`;
+
+        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition-opacity duration-300 opacity-0 flex justify-between items-center w-auto max-w-xs`;
+        
+        // Agregar contenido del mensaje y botón de cierre
+        toast.innerHTML = `
+            <p class="mr-4">${mensaje}</p>
+            <button onclick="this.parentElement.remove()" class="text-white text-lg font-bold">&times;</button>
+        `;
+
         document.getElementById("toast-container").appendChild(toast);
-        setTimeout(() => {
-            toast.classList.remove("translate-x-5", "opacity-0");
-        }, 100);
+        
+        // Hacer que el toast aparezca con animación
+        setTimeout(() => toast.classList.remove("opacity-0"), 100);
+
+        // Ocultar después de 3 segundos automáticamente
         setTimeout(() => {
             toast.classList.add("opacity-0");
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
 
+    // Cargar mensajes flash desde Flask
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
             {% for category, message in messages %}

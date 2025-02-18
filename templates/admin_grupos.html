@@ -6,9 +6,12 @@
 <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Grupos</h1>
 
-    <button onclick="abrirModal('modalAgregarGrupo')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+    <button onclick="abrirModalGrupo('modalAgregarGrupo')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
         + Agregar Grupo
     </button>
+
+    <!-- Contenedor de alertas flotantes -->
+    <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
 
     <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
         <table class="w-full table-auto">
@@ -27,24 +30,28 @@
                     <td class="px-4 py-2">{{ grupo.nombre }}</td>
                     <td class="px-4 py-2">{{ grupo.turno }}</td>
                     <td class="px-4 py-2 space-x-2">
-                        <button onclick="abrirModal('modalEditarGrupo-{{ grupo.grupos_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
-                        <button onclick="abrirModal('modalEliminarGrupo-{{ grupo.grupos_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
+                        <button onclick="abrirModalGrupo('modalEditarGrupo-{{ grupo.grupos_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
+                        <button onclick="abrirModalGrupo('modalEliminarGrupo-{{ grupo.grupos_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
                     </td>
                 </tr>
 
                 <!-- Modal Editar Grupo -->
-                <div id="modalEditarGrupo-{{ grupo.grupos_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEditarGrupo-{{ grupo.grupos_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalGrupoClick(event, 'modalEditarGrupo-{{ grupo.grupos_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalGrupo('modalEditarGrupo-{{ grupo.grupos_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">Editar Grupo</h2>
                         <form method="POST" action="{{ url_for('grupos_bp.editar_grupo', id=grupo.grupos_id) }}">
                             <label class="block mt-3 mb-2">Nombre:</label>
                             <input type="text" name="nombre" value="{{ grupo.nombre }}" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+                            
                             <label class="block mt-3 mb-2">Turno:</label>
                             <select name="turno" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300">
                                 <option value="Matutino" {% if grupo.turno == 'Matutino' %} selected {% endif %}>Matutino</option>
                                 <option value="Vespertino" {% if grupo.turno == 'Vespertino' %} selected {% endif %}>Vespertino</option>
                             </select>
+
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalGrupo('modalEditarGrupo-{{ grupo.grupos_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">Guardar</button>
                             </div>
                         </form>
@@ -52,12 +59,14 @@
                 </div>
 
                 <!-- Modal Eliminar Grupo -->
-                <div id="modalEliminarGrupo-{{ grupo.grupos_id }}" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <div id="modalEliminarGrupo-{{ grupo.grupos_id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" onclick="cerrarModalGrupoClick(event, 'modalEliminarGrupo-{{ grupo.grupos_id }}')">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                        <button onclick="cerrarModalGrupo('modalEliminarGrupo-{{ grupo.grupos_id }}')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
                         <h2 class="text-xl font-semibold">¿Eliminar Grupo?</h2>
                         <p class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
                         <form method="POST" action="{{ url_for('grupos_bp.eliminar_grupo', id=grupo.grupos_id) }}">
                             <div class="flex justify-end mt-5 space-x-2">
+                                <button type="button" onclick="cerrarModalGrupo('modalEliminarGrupo-{{ grupo.grupos_id }}')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Eliminar</button>
                             </div>
                         </form>
@@ -71,42 +80,67 @@
 
 <!-- Modal de Agregar Grupo -->
 <div id="modalAgregarGrupo" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+        <button onclick="cerrarModalGrupo('modalAgregarGrupo')" class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
         <h2 class="text-xl font-semibold">Agregar Grupo</h2>
         <form method="POST" action="{{ url_for('grupos_bp.crear_grupo') }}">
             <label class="block mt-3 mb-2">Nombre:</label>
             <input type="text" name="nombre" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+
             <label class="block mt-3 mb-2">Turno:</label>
             <select name="turno" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300">
                 <option value="Matutino">Matutino</option>
                 <option value="Vespertino">Vespertino</option>
             </select>
+
             <div class="flex justify-end mt-5 space-x-2">
+                <button type="button" onclick="cerrarModalGrupo('modalAgregarGrupo')" class="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Agregar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Contenedor de alertas flotantes -->
-<div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
-
+<!-- Script para manejar modals -->
 <script>
+    function abrirModalGrupo(id) {
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function cerrarModalGrupo(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
+
+    function cerrarModalGrupoClick(event, id) {
+        if (event.target.id === id) {
+            cerrarModalGrupo(id);
+        }
+    }
     function mostrarToast(mensaje, tipo) {
         let bgColor = tipo === 'success' ? 'bg-green-500' : 'bg-red-500';
         let toast = document.createElement("div");
-        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition transform translate-x-5 opacity-0`;
-        toast.innerHTML = `<p>${mensaje}</p>`;
+
+        toast.className = `p-4 ${bgColor} text-white rounded-lg shadow-lg transition-opacity duration-300 opacity-0 flex justify-between items-center w-auto max-w-xs`;
+        
+        // Agregar contenido del mensaje y botón de cierre
+        toast.innerHTML = `
+            <p class="mr-4">${mensaje}</p>
+            <button onclick="this.parentElement.remove()" class="text-white text-lg font-bold">&times;</button>
+        `;
+
         document.getElementById("toast-container").appendChild(toast);
-        setTimeout(() => {
-            toast.classList.remove("translate-x-5", "opacity-0");
-        }, 100);
+        
+        // Hacer que el toast aparezca con animación
+        setTimeout(() => toast.classList.remove("opacity-0"), 100);
+
+        // Ocultar después de 3 segundos automáticamente
         setTimeout(() => {
             toast.classList.add("opacity-0");
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
 
+    // Cargar mensajes flash desde Flask
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
             {% for category, message in messages %}

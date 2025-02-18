@@ -11,16 +11,26 @@ class Calificaciones(db.Model):
     primer_parcial = db.Column(db.Numeric(5,2), nullable=True)
     segundo_parcial = db.Column(db.Numeric(5,2), nullable=True)
     tercer_parcial = db.Column(db.Numeric(5,2), nullable=True)
-    calificacion_final = db.Column(db.Numeric(5,2), nullable=True)
+    calificacion_final = db.Column(db.Numeric(5,2), nullable=True)  # AHORA ES UNA COLUMNA NORMAL
 
-    # Relación corregida con Alumnos
+    # Relación con Alumnos
     alumno = db.relationship('Alumnos', backref='calificaciones')
-    materia = db.relationship('Materias', backref='calificaciones')
+
+    # Relación con Materias
+    materia = db.relationship('Materias', back_populates='calificaciones', overlaps="calificaciones")
+
+    # Relación con Cuatrimestre
     cuatrimestre = db.relationship('Cuatrimestre', backref='calificaciones')
 
     def calcular_calificacion_final(self):
+        """ Calcula la calificación final solo si los tres parciales tienen valor """
         if self.primer_parcial is not None and self.segundo_parcial is not None and self.tercer_parcial is not None:
-            self.calificacion_final = (self.primer_parcial + self.segundo_parcial + self.tercer_parcial) / 3
+            try:
+                self.calificacion_final = round(
+                    (float(self.primer_parcial) + float(self.segundo_parcial) + float(self.tercer_parcial)) / 3, 2
+                )
+            except (ValueError, TypeError):
+                self.calificacion_final = None
 
     def __repr__(self):
         return f'<Calificación {self.calificaciones_id} - Alumno {self.usuario_id}>'

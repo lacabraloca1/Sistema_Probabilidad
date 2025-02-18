@@ -3,117 +3,235 @@
 {% block title %}Administrar Calificaciones{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-blue-600">Administrar Calificaciones</h1>
-
-    <button onclick="abrirModal('modalAgregarCalificacion')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
-        + Agregar Calificación
+<div class="container mx-auto py-8 px-4">
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-blue-600 mb-4 sm:mb-0">Administrar Calificaciones</h1>
+    <button onclick="abrirModal('modalAgregarCalificacion')" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-md shadow">
+      + Agregar Calificación
     </button>
+  </div>
 
-    <div class="mt-6 bg-white shadow-md rounded-lg overflow-hidden">
-        <table class="w-full table-auto">
-            <thead class="bg-blue-500 text-white">
-                <tr>
-                    <th class="px-4 py-2">Alumno</th>
-                    <th class="px-4 py-2">Materia</th>
-                    <th class="px-4 py-2">Primer Parcial</th>
-                    <th class="px-4 py-2">Segundo Parcial</th>
-                    <th class="px-4 py-2">Tercer Parcial</th>
-                    <th class="px-4 py-2">Final</th>
-                    <th class="px-4 py-2">Probabilidad</th>
-                    <th class="px-4 py-2">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for calificacion in calificaciones %}
-                <tr class="border-b hover:bg-gray-100">
-                    <td class="px-4 py-2">{{ calificacion.alumno.nombre }}</td>
-                    <td class="px-4 py-2">{{ calificacion.materia.nombre }}</td>
-                    <td class="px-4 py-2">{{ calificacion.primer_parcial }}</td>
-                    <td class="px-4 py-2">{{ calificacion.segundo_parcial }}</td>
-                    <td class="px-4 py-2">{{ calificacion.tercer_parcial }}</td>
-                    <td class="px-4 py-2">{{ calificacion.calificacion_final }}</td>
-                    <td class="px-4 py-2">{{ calificacion.probabilidad | round(3) }}%</td>
-                    <td class="px-4 py-2 space-x-2">
-                        <button onclick="abrirModal('modalEditarCalificacion-{{ calificacion.calificaciones_id }}')" class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Editar</button>
-                        <button onclick="abrirModal('modalEliminarCalificacion-{{ calificacion.calificaciones_id }}')" class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">Eliminar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="mb-6">
+        <label for="selectAlumno" class="block text-lg font-semibold text-gray-700 mb-2">Seleccionar Alumno:</label>
+        <select   select id="selectAlumno" onchange="mostrarTabla(this.value)" class="w-full p-3 border rounded-md focus:ring focus:ring-blue-300">
+            <option value="" disabled selected>Seleccione un alumno</option>
+            {% for alumno in alumnos %}
+             <option value="{{ alumno.usuario_id }}">{{ alumno.nombre }} {{ alumno.apellido_paterno }} - {{ alumno.matricula }}</option>
+            {% endfor %}
+        </select>
     </div>
-</div>
 
-<!-- Modal de Agregar Calificación -->
-<div id="modalAgregarCalificacion" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 class="text-xl font-semibold">Agregar Calificación</h2>
-        <form id="formAgregarCalificacion" method="POST" action="{{ url_for('calificaciones_bp.asignar_calificacion') }}">
-            <label class="block mt-3 mb-2">Alumno:</label>
-            <select name="usuario_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-                {% for alumno in alumnos %}
-                    <option value="{{ alumno.usuario_id }}">{{ alumno.nombre }}</option>
-                {% endfor %}
-            </select>
 
-            <label class="block mt-3 mb-2">Materia:</label>
-            <select name="materia_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-                {% for materia in materias %}
-                    <option value="{{ materia.materia_id }}">{{ materia.nombre }}</option>
-                {% endfor %}
-            </select>
+  <!-- Tarjetas de Calificaciones -->
+  {% for alumno_id, data in alumnos_con_calificaciones.items() %}
+  <div id="tabla-{{ alumno_id }}" class="hidden mb-8">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <div class="bg-blue-600 text-white px-6 py-4 flex items-center">
+        <img src="{{ url_for('static', filename='img/user.png') }}" alt="User" class="w-10 h-10 mr-4 rounded-full">
+        <div>
+          <p class="font-bold text-xl">{{ data.alumno.nombre }} {{ data.alumno.apellido_paterno }} {{ data.alumno.apellido_materno }}</p>
+          <p class="text-sm">{{ data.alumno.email_correo }} | {{ data.alumno.matricula }}</p>
+        </div>
+      </div>
+      <div class="p-6 overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left">Materia</th>
+              <th class="px-4 py-2 text-left">Primer Parcial</th>
+              <th class="px-4 py-2 text-left">Segundo Parcial</th>
+              <th class="px-4 py-2 text-left">Tercer Parcial</th>
+              <th class="px-4 py-2 text-left">Final</th>
+              <th class="px-4 py-2 text-left">Probabilidad</th>
+              <th class="px-4 py-2 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for calificacion in data.calificaciones %}
+            <tr class="border-b {% if calificacion.calificacion_final >= 85 %}bg-green-100{% elif calificacion.calificacion_final >= 70 %}bg-yellow-100{% else %}bg-red-100{% endif %}">
+              <td class="px-4 py-2">{{ calificacion.materia.nombre }}</td>
+              <td class="px-4 py-2">{{ calificacion.primer_parcial }}</td>
+              <td class="px-4 py-2">{{ calificacion.segundo_parcial }}</td>
+              <td class="px-4 py-2">{{ calificacion.tercer_parcial }}</td>
+              <td class="px-4 py-2">{{ calificacion.calificacion_final }}</td>
+              <td class="px-4 py-2">{{ calificacion.probabilidad }}%</td>
+              <td class="px-4 py-2 flex justify-center space-x-2">
+                <button onclick="abrirModal('modalEditarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md">
+                  Editar
+                </button>
+                <button onclick="abrirModal('modalEliminarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
 
-            <label class="block mt-3 mb-2">Cuatrimestre:</label>
-            <select name="cuatrimestre_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-                {% for cuatrimestre in cuatrimestres %}
-                    <option value="{{ cuatrimestre.cuatrimestre_id }}">{{ cuatrimestre.nombre }}</option>
-                {% endfor %}
-            </select>
-
-            <label class="block mt-3 mb-2">Primer Parcial:</label>
-            <input type="number" name="primer_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-
-            <label class="block mt-3 mb-2">Segundo Parcial:</label>
-            <input type="number" name="segundo_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-
-            <label class="block mt-3 mb-2">Tercer Parcial:</label>
-            <input type="number" name="tercer_parcial" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
-
-            <div class="flex justify-end mt-5 space-x-2">
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Guardar</button>
-                <button type="button" onclick="cerrarModal('modalAgregarCalificacion')" class="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500">Cancelar</button>
+            <!-- Modal Editar Calificación -->
+            <div id="modalEditarCalificacion-{{ calificacion.calificaciones_id }}" class="modal fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                <button onclick="cerrarModal('modalEditarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                        class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+                <h2 class="text-xl font-semibold mb-4">Editar Calificación</h2>
+                <form method="POST" action="{{ url_for('calificaciones_bp.editar_calificacion', id=calificacion.calificaciones_id) }}">
+                  <div class="mb-4">
+                    <label class="block mb-1">Primer Parcial:</label>
+                    <input type="number" name="primer_parcial" value="{{ calificacion.primer_parcial }}" min="0" max="100" 
+                           class="w-full p-2 border rounded-md" required>
+                  </div>
+                  <div class="mb-4">
+                    <label class="block mb-1">Segundo Parcial:</label>
+                    <input type="number" name="segundo_parcial" value="{{ calificacion.segundo_parcial }}" min="0" max="100" 
+                           class="w-full p-2 border rounded-md" required>
+                  </div>
+                  <div class="mb-4">
+                    <label class="block mb-1">Tercer Parcial:</label>
+                    <input type="number" name="tercer_parcial" value="{{ calificacion.tercer_parcial }}" min="0" max="100" 
+                           class="w-full p-2 border rounded-md" required>
+                  </div>
+                  <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="cerrarModal('modalEditarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                            class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md">
+                      Cancelar
+                    </button>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
+                      Guardar
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-        </form>
+
+            <!-- Modal Eliminar Calificación -->
+            <div id="modalEliminarCalificacion-{{ calificacion.calificaciones_id }}" class="modal fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+                <button onclick="cerrarModal('modalEliminarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                        class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+                <h2 class="text-xl font-semibold mb-4">Eliminar Calificación</h2>
+                <p class="mb-4">¿Está seguro de que desea eliminar esta calificación?</p>
+                <form method="POST" action="{{ url_for('calificaciones_bp.eliminar_calificacion', id=calificacion.calificaciones_id) }}">
+                  <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="cerrarModal('modalEliminarCalificacion-{{ calificacion.calificaciones_id }}')" 
+                            class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md">
+                      Cancelar
+                    </button>
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md">
+                      Eliminar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+            <tr class="font-bold {% if data.probabilidad_cuatrimestre >= 85 %}bg-green-200{% elif data.probabilidad_cuatrimestre >= 50 %}bg-yellow-200{% else %}bg-red-300{% endif %}">
+              <td colspan="5" class="px-4 py-3 text-center text-lg">Probabilidad de Aprobar el Cuatrimestre</td>
+              <td class="px-4 py-3 text-center">{{ data.probabilidad_cuatrimestre }}%</td>
+              <td></td> 
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
+  {% endfor %}
+
+  <!-- Modal Agregar Calificación -->
+  <div id="modalAgregarCalificacion" class="modal fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50" 
+       onclick="cerrarModalClick(event, 'modalAgregarCalificacion')">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative" onclick="event.stopPropagation();">
+      <button type="button" onclick="cerrarModal('modalAgregarCalificacion')" 
+              class="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+      <h2 class="text-xl font-semibold mb-4">Agregar Calificación</h2>
+      <form method="POST" action="{{ url_for('calificaciones_bp.asignar_calificacion') }}">
+        <div class="mb-4">
+          <label class="block mb-1">Alumno:</label>
+          <select name="usuario_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+            <option value="" disabled selected>Seleccione un alumno</option>
+            {% for alumno in alumnos %}
+              <option value="{{ alumno.usuario_id }}">{{ alumno.nombre }} {{ alumno.apellido_paterno }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Materia:</label>
+          <select name="materia_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+            <option value="" disabled selected>Seleccione una materia</option>
+            {% for materia in materias %}
+              <option value="{{ materia.materia_id }}">{{ materia.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Cuatrimestre:</label>
+          <select name="cuatrimestre_id" class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+            <option value="" disabled selected>Seleccione un cuatrimestre</option>
+            {% for cuatrimestre in cuatrimestres %}
+              <option value="{{ cuatrimestre.cuatrimestre_id }}">{{ cuatrimestre.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Primer Parcial:</label>
+          <input type="number" name="primer_parcial" step="1.00" min="0" max="100" 
+                 class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Segundo Parcial:</label>
+          <input type="number" name="segundo_parcial" step="1.00" min="0" max="100" 
+                 class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1">Tercer Parcial:</label>
+          <input type="number" name="tercer_parcial" step="1.00" min="0" max="100" 
+                 class="w-full p-2 border rounded-md focus:ring focus:ring-blue-300" required>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" onclick="cerrarModal('modalAgregarCalificacion')" 
+                  class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md">
+            Cancelar
+          </button>
+          <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50"></div>
 </div>
 
+<!-- Scripts -->
 <script>
-    function abrirModal(id) {
-        document.getElementById(id).classList.remove("hidden");
+  function abrirModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+  }
+  function cerrarModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+  function cerrarModalClick(event, id) {
+    if (event.target.id === id) {
+      cerrarModal(id);
     }
+  }
 
-    function cerrarModal(id) {
-        document.getElementById(id).classList.add("hidden");
+  function mostrarTabla(alumnoId) {
+    document.querySelectorAll("[id^='tabla-']").forEach(tabla => tabla.classList.add("hidden"));
+    const tablaSeleccionada = document.getElementById(`tabla-${alumnoId}`);
+    if (tablaSeleccionada) {
+      tablaSeleccionada.classList.remove("hidden");
     }
+  }
+  
+  document.addEventListener("DOMContentLoaded", () => {
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const formAgregarCalificacion = document.getElementById("formAgregarCalificacion");
-
-        formAgregarCalificacion.addEventListener("submit", function () {
-            setTimeout(() => {
-                cerrarModal("modalAgregarCalificacion");
-            }, 500);
-        });
-    });
-
-    document.querySelectorAll(".modal").forEach(modal => {
-        modal.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                cerrarModal(modal.id);
-            }
-        });
-    });
+    // Mostrar la primera tarjeta de alumno de forma predeterminada
+    const firstTable = document.querySelector("[id^='tabla-']");
+    if (firstTable) {
+      firstTable.classList.remove("hidden");
+    }
+  });
 </script>
-
 {% endblock %}

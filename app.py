@@ -8,12 +8,14 @@ from routes.calificaciones import calificaciones_bp
 from routes.inscripcion import inscripcion_bp
 from routes.materias_cuatrimestre import materias_cuatri_bp
 import pymysql
+import os
 
 pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234567890@localhost/sistema_escolar_db'#root:contraseña
+app.config['SECRET_KEY'] = os.urandom(24) 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost/sistema_escolar_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Registrar los Blueprints

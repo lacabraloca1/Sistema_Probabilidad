@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, request, flash,render_template, redirect, url_for, jsonify
 from utils.extensions import db
 from models.grupos import Grupos
 
@@ -32,6 +32,13 @@ def eliminar_grupo(id):
     grupo = Grupos.query.get(id)
     if not grupo:
         return jsonify({"error": "Grupo no encontrado"}), 404
+
     db.session.delete(grupo)
     db.session.commit()
+
+    # Restablecer el AUTO_INCREMENT después de eliminar
+    db.session.execute("ALTER TABLE Grupos AUTO_INCREMENT = 1")
+    db.session.commit()
+
+    flash("Grupo eliminado correctamente", "success")
     return redirect(url_for('grupos_bp.vista_grupos'))

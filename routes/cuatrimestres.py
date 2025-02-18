@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, flash, request, render_template, redirect, url_for, jsonify
 from utils.extensions import db
 from models.cuatrimestre import Cuatrimestre
 
@@ -31,6 +31,13 @@ def eliminar_cuatrimestre(id):
     cuatrimestre = Cuatrimestre.query.get(id)
     if not cuatrimestre:
         return jsonify({"error": "Cuatrimestre no encontrado"}), 404
+
     db.session.delete(cuatrimestre)
     db.session.commit()
+
+    # Restablecer el AUTO_INCREMENT después de eliminar
+    db.session.execute("ALTER TABLE Cuatrimestres AUTO_INCREMENT = 1")
+    db.session.commit()
+
+    flash("Cuatrimestre eliminado correctamente", "success")
     return redirect(url_for('cuatrimestres_bp.vista_cuatrimestres'))
